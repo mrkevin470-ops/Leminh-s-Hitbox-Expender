@@ -11,6 +11,10 @@ local TweenService = game:GetService("TweenService")
 -- Giá trị riêng của Q
 local qMultiplier = 7
 
+-- Phím Q/E có thể thay đổi bằng các ô vuông trong GUI
+local qKey = Enum.KeyCode.Q
+local eKey = Enum.KeyCode.E
+
 -- Giá trị hitbox đang được áp dụng
 local currentMultiplier = 1
 
@@ -216,12 +220,58 @@ ToggleStroke.Thickness = 2
 ToggleStroke.Parent = ToggleButton
 
 -- =========================================================
+-- DRAG FLOATING ⚡ BUTTON
+-- =========================================================
+
+local toggleDragging = false
+local toggleDragInput
+local toggleDragStart
+local toggleStartPos
+
+connect(ToggleButton.InputBegan, function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+
+        toggleDragging = true
+        toggleDragStart = input.Position
+        toggleStartPos = ToggleButton.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                toggleDragging = false
+            end
+        end)
+    end
+end)
+
+connect(ToggleButton.InputChanged, function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch then
+
+        toggleDragInput = input
+    end
+end)
+
+connect(UserInputService.InputChanged, function(input)
+    if toggleDragging and input == toggleDragInput then
+        local delta = input.Position - toggleDragStart
+
+        ToggleButton.Position = UDim2.new(
+            toggleStartPos.X.Scale,
+            toggleStartPos.X.Offset + delta.X,
+            toggleStartPos.Y.Scale,
+            toggleStartPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+-- =========================================================
 -- MAIN FRAME
 -- =========================================================
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 360, 0, 405)
+MainFrame.Size = UDim2.new(0, 360, 0, 445)
 MainFrame.Position = UDim2.new(0.5, -180, 0.38, -200)
 MainFrame.BackgroundColor3 = Color3.fromRGB(6, 6, 10)
 MainFrame.BackgroundTransparency = 0.04
@@ -323,7 +373,7 @@ TitleLabel.Parent = MainFrame
 
 local MadeBy = Instance.new("TextLabel")
 MadeBy.Size = UDim2.new(1, 0, 0, 18)
-MadeBy.Position = UDim2.new(0, 0, 0, 35)
+MadeBy.Position = UDim2.new(0, 0, 0, 34)
 MadeBy.BackgroundTransparency = 1
 MadeBy.Text = "Made by: Leminh"
 MadeBy.TextColor3 = Color3.fromRGB(100, 130, 125)
@@ -478,7 +528,7 @@ KeybindTitle.TextXAlignment = Enum.TextXAlignment.Left
 KeybindTitle.Parent = MainFrame
 
 -- =========================================================
--- Q ROW
+-- Q ROW: [Q] → [7]x
 -- =========================================================
 
 local QRow = Instance.new("Frame")
@@ -493,23 +543,53 @@ QRowCorner.CornerRadius = UDim.new(0, 10)
 QRowCorner.Parent = QRow
 
 local QLabel = Instance.new("TextLabel")
-QLabel.Size = UDim2.new(0, 55, 1, 0)
+QLabel.Size = UDim2.new(0, 42, 1, 0)
 QLabel.Position = UDim2.new(0, 10, 0, 0)
 QLabel.BackgroundTransparency = 1
-QLabel.Text = "Q  →"
+QLabel.Text = ""
 QLabel.TextColor3 = Color3.fromRGB(220, 220, 235)
 QLabel.TextSize = 12
 QLabel.Font = Enum.Font.GothamBold
 QLabel.TextXAlignment = Enum.TextXAlignment.Left
 QLabel.Parent = QRow
 
+local QKeyBox = Instance.new("TextButton")
+QKeyBox.Size = UDim2.new(0, 48, 0, 28)
+QKeyBox.Position = UDim2.new(0, 10, 0.5, -14)
+QKeyBox.BackgroundColor3 = Color3.fromRGB(25, 25, 38)
+QKeyBox.Text = "Q"
+QKeyBox.TextColor3 = Color3.fromRGB(0, 255, 170)
+QKeyBox.TextSize = 12
+QKeyBox.Font = Enum.Font.GothamBold
+QKeyBox.AutoButtonColor = false
+QKeyBox.Parent = QRow
+
+local QKeyCorner = Instance.new("UICorner")
+QKeyCorner.CornerRadius = UDim.new(0, 7)
+QKeyCorner.Parent = QKeyBox
+
+local QKeyStroke = Instance.new("UIStroke")
+QKeyStroke.Color = Color3.fromRGB(40, 40, 65)
+QKeyStroke.Thickness = 1.2
+QKeyStroke.Parent = QKeyBox
+
+local QArrow = Instance.new("TextLabel")
+QArrow.Size = UDim2.new(0, 25, 1, 0)
+QArrow.Position = UDim2.new(0, 62, 0, 0)
+QArrow.BackgroundTransparency = 1
+QArrow.Text = "→"
+QArrow.TextColor3 = Color3.fromRGB(130, 130, 145)
+QArrow.TextSize = 12
+QArrow.Font = Enum.Font.GothamBold
+QArrow.Parent = QRow
+
 local QBox = Instance.new("TextBox")
-QBox.Size = UDim2.new(0, 70, 0, 28)
-QBox.Position = UDim2.new(0, 65, 0.5, -14)
+QBox.Size = UDim2.new(0, 58, 0, 28)
+QBox.Position = UDim2.new(0, 87, 0.5, -14)
 QBox.BackgroundColor3 = Color3.fromRGB(25, 25, 38)
 QBox.Text = tostring(qMultiplier)
 QBox.PlaceholderText = "1-50"
-QBox.TextColor3 = Color3.fromRGB(0, 255, 170)
+QBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 QBox.PlaceholderColor3 = Color3.fromRGB(100, 100, 110)
 QBox.TextSize = 12
 QBox.Font = Enum.Font.GothamBold
@@ -526,16 +606,15 @@ QBoxStroke.Color = Color3.fromRGB(40, 40, 65)
 QBoxStroke.Thickness = 1.2
 QBoxStroke.Parent = QBox
 
-local XLabel = Instance.new("TextLabel")
-XLabel.Size = UDim2.new(0, 30, 1, 0)
-XLabel.Position = UDim2.new(0, 140, 0, 0)
-XLabel.BackgroundTransparency = 1
-XLabel.Text = "x"
-XLabel.TextColor3 = Color3.fromRGB(220, 220, 235)
-XLabel.TextSize = 12
-XLabel.Font = Enum.Font.GothamBold
-XLabel.TextXAlignment = Enum.TextXAlignment.Left
-XLabel.Parent = QRow
+local QXLabel = Instance.new("TextLabel")
+QXLabel.Size = UDim2.new(0, 25, 1, 0)
+QXLabel.Position = UDim2.new(0, 147, 0, 0)
+QXLabel.BackgroundTransparency = 1
+QXLabel.Text = "x"
+QXLabel.TextColor3 = Color3.fromRGB(220, 220, 235)
+QXLabel.TextSize = 12
+QXLabel.Font = Enum.Font.GothamBold
+QXLabel.Parent = QRow
 
 -- =========================================================
 -- SLIDER 1x → 50x
@@ -794,7 +873,7 @@ connect(QBox.FocusLost, function()
 end)
 
 -- =========================================================
--- E ROW
+-- E ROW: [E] → [1]x
 -- =========================================================
 
 local ERow = Instance.new("Frame")
@@ -809,14 +888,75 @@ ERowCorner.CornerRadius = UDim.new(0, 10)
 ERowCorner.Parent = ERow
 
 local ELabel = Instance.new("TextLabel")
-ELabel.Size = UDim2.new(1, 0, 1, 0)
+ELabel.Size = UDim2.new(0, 42, 1, 0)
+ELabel.Position = UDim2.new(0, 10, 0, 0)
 ELabel.BackgroundTransparency = 1
-ELabel.Text = "   E     →     Hitbox 1x"
+ELabel.Text = ""
 ELabel.TextColor3 = Color3.fromRGB(220, 220, 235)
 ELabel.TextSize = 12
 ELabel.Font = Enum.Font.GothamBold
 ELabel.TextXAlignment = Enum.TextXAlignment.Left
 ELabel.Parent = ERow
+
+local EKeyBox = Instance.new("TextButton")
+EKeyBox.Size = UDim2.new(0, 48, 0, 28)
+EKeyBox.Position = UDim2.new(0, 10, 0.5, -14)
+EKeyBox.BackgroundColor3 = Color3.fromRGB(25, 25, 38)
+EKeyBox.Text = "E"
+EKeyBox.TextColor3 = Color3.fromRGB(0, 255, 170)
+EKeyBox.TextSize = 12
+EKeyBox.Font = Enum.Font.GothamBold
+EKeyBox.AutoButtonColor = false
+EKeyBox.Parent = ERow
+
+local EKeyCorner = Instance.new("UICorner")
+EKeyCorner.CornerRadius = UDim.new(0, 7)
+EKeyCorner.Parent = EKeyBox
+
+local EKeyStroke = Instance.new("UIStroke")
+EKeyStroke.Color = Color3.fromRGB(40, 40, 65)
+EKeyStroke.Thickness = 1.2
+EKeyStroke.Parent = EKeyBox
+
+local EArrow = Instance.new("TextLabel")
+EArrow.Size = UDim2.new(0, 25, 1, 0)
+EArrow.Position = UDim2.new(0, 62, 0, 0)
+EArrow.BackgroundTransparency = 1
+EArrow.Text = "→"
+EArrow.TextColor3 = Color3.fromRGB(130, 130, 145)
+EArrow.TextSize = 12
+EArrow.Font = Enum.Font.GothamBold
+EArrow.Parent = ERow
+
+local EValueLabel = Instance.new("TextLabel")
+EValueLabel.Size = UDim2.new(0, 58, 0, 28)
+EValueLabel.Position = UDim2.new(0, 87, 0.5, -14)
+EValueLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 38)
+EValueLabel.Text = "1"
+EValueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+EValueLabel.TextSize = 12
+EValueLabel.Font = Enum.Font.GothamBold
+EValueLabel.TextXAlignment = Enum.TextXAlignment.Center
+EValueLabel.Parent = ERow
+
+local EValueCorner = Instance.new("UICorner")
+EValueCorner.CornerRadius = UDim.new(0, 7)
+EValueCorner.Parent = EValueLabel
+
+local EValueStroke = Instance.new("UIStroke")
+EValueStroke.Color = Color3.fromRGB(40, 40, 65)
+EValueStroke.Thickness = 1.2
+EValueStroke.Parent = EValueLabel
+
+local EXLabel = Instance.new("TextLabel")
+EXLabel.Size = UDim2.new(0, 25, 1, 0)
+EXLabel.Position = UDim2.new(0, 147, 0, 0)
+EXLabel.BackgroundTransparency = 1
+EXLabel.Text = "x"
+EXLabel.TextColor3 = Color3.fromRGB(220, 220, 235)
+EXLabel.TextSize = 12
+EXLabel.Font = Enum.Font.GothamBold
+EXLabel.Parent = ERow
 
 -- =========================================================
 -- DESTROY GUI
@@ -825,7 +965,7 @@ ELabel.Parent = ERow
 local DestroyButton = Instance.new("TextButton")
 DestroyButton.Name = "DestroyGUI"
 DestroyButton.Size = UDim2.new(0.88, 0, 0, 42)
-DestroyButton.Position = UDim2.new(0.06, 0, 0, 350)
+DestroyButton.Position = UDim2.new(0.06, 0, 0, 395)
 DestroyButton.BackgroundColor3 = Color3.fromRGB(45, 15, 20)
 DestroyButton.BorderSizePixel = 0
 DestroyButton.Text = "DESTROY GUI"
@@ -857,57 +997,78 @@ end)
 -- KEYBINDS
 -- =========================================================
 
-connect(UserInputService.InputBegan, function(input, gameProcessed)
+local waitingForQKey = false
+local waitingForEKey = false
 
-    if gameProcessed or destroyed then
+QKeyBox.Text = qKey.Name
+EKeyBox.Text = eKey.Name
+
+connect(QKeyBox.MouseButton1Click, function()
+    if destroyed then
         return
     end
 
-    -- =====================================================
-    -- Q → DÙNG GIÁ TRỊ Q ĐÃ LƯU
-    -- =====================================================
+    waitingForQKey = true
+    waitingForEKey = false
+    QKeyBox.Text = "..."
+    sendNotification("Keybind", "Bấm phím mới cho Q.")
+end)
 
-    if input.KeyCode == Enum.KeyCode.Q then
+connect(EKeyBox.MouseButton1Click, function()
+    if destroyed then
+        return
+    end
 
+    waitingForEKey = true
+    waitingForQKey = false
+    EKeyBox.Text = "..."
+    sendNotification("Keybind", "Bấm phím mới cho E.")
+end)
+
+connect(UserInputService.InputBegan, function(input, gameProcessed)
+    if destroyed then
+        return
+    end
+
+    -- Đổi phím Q
+    if input.UserInputType == Enum.UserInputType.Keyboard and waitingForQKey then
+        qKey = input.KeyCode
+        waitingForQKey = false
+        QKeyBox.Text = qKey.Name
+        sendNotification("Keybind", "Q = " .. qKey.Name)
+        return
+    end
+
+    -- Đổi phím E
+    if input.UserInputType == Enum.UserInputType.Keyboard and waitingForEKey then
+        eKey = input.KeyCode
+        waitingForEKey = false
+        EKeyBox.Text = eKey.Name
+        sendNotification("Keybind", "E = " .. eKey.Name)
+        return
+    end
+
+    if gameProcessed then
+        return
+    end
+
+    -- Q = giá trị slider hiện tại
+    if input.KeyCode == qKey then
         currentMultiplier = qMultiplier
 
-        -- Không thay đổi QBox
-        QBox.Text = tostring(qMultiplier)
-
-        SliderValue.Text =
-            tostring(qMultiplier) .. "x"
-
         sendNotification(
             "Keybind",
-            "Hitbox = "
-                .. tostring(qMultiplier)
-                .. "x [Q]"
+            "Hitbox = " .. tostring(qMultiplier) .. "x [" .. qKey.Name .. "]"
         )
 
-    -- =====================================================
-    -- E → 1x
-    -- Q KHÔNG THAY ĐỔI
-    -- =====================================================
-
-    elseif input.KeyCode == Enum.KeyCode.E then
-
+    -- E = 1x, không thay đổi Q/slider
+    elseif input.KeyCode == eKey then
         currentMultiplier = 1
-
-        -- QUAN TRỌNG:
-        -- Không thay đổi qMultiplier
-        -- Không thay đổi Slider
-        -- Không thay đổi QBox
-
-        QBox.Text = tostring(qMultiplier)
-
-        SliderValue.Text =
-            tostring(qMultiplier) .. "x"
 
         sendNotification(
             "Keybind",
-            "Hitbox = 1x [E] | Q = "
-                .. tostring(qMultiplier)
-                .. "x"
+            "Hitbox = 1x [" .. eKey.Name .. "] | Q = "
+                .. tostring(qMultiplier) .. "x"
         )
     end
 end)
