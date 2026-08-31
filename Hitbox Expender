@@ -1011,7 +1011,7 @@ connect(QKeyBox.MouseButton1Click, function()
     waitingForQKey = true
     waitingForEKey = false
     QKeyBox.Text = "..."
-    sendNotification("Keybind", "Bấm phím mới cho Q.")
+    sendNotification("Keybind", "Choose a new key for Q.")
 end)
 
 connect(EKeyBox.MouseButton1Click, function()
@@ -1022,7 +1022,7 @@ connect(EKeyBox.MouseButton1Click, function()
     waitingForEKey = true
     waitingForQKey = false
     EKeyBox.Text = "..."
-    sendNotification("Keybind", "Bấm phím mới cho E.")
+    sendNotification("Keybind", "Choose a new key for E.")
 end)
 
 connect(UserInputService.InputBegan, function(input, gameProcessed)
